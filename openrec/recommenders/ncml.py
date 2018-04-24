@@ -1,4 +1,5 @@
 import numpy as np
+import tensorflow as tf
 from openrec.recommenders import Recommender
 from openrec.modules.extractions import LatentFactor
 from openrec.modules.interactions import NSEuDist
@@ -28,7 +29,8 @@ class NCML(Recommender):
                     self._get_input('p_item_id'): batch_data['p_item_id_input'],
                     self._get_input('n_item_id'): np.array(batch_data['n_item_id_inputs'].tolist())}
         else:
-            return {self._get_input('user_id', train=train): batch_data['user_id_input']}
+            return {self._get_input('user_id', train=train): batch_data['user_id_input'],
+                   self._get_input('item_id', train=train): batch_data['item_id_input']}
 
     def _build_user_inputs(self, train=True):
         
@@ -43,8 +45,14 @@ class NCML(Recommender):
             self._add_input(name='p_item_id', dtype='int32', shape=[self._batch_size])
             self._add_input(name='n_item_id', dtype='int32', shape=[self._batch_size, self._neg_num])
         else:
-            self._add_input(name='item_id', dtype='none', train=False)
+            self._add_input(name='item_id', dtype='int32', shape=[None], train=False)
 
+    def _build_post_training_ops(self):
+        unique_user_id, _ = tf.unique(self._get_input('user_id'))
+        unique_item_id, _ = tf.unique(tf.concat([self._get_input('p_item_id'), tf.reshape(self._get_input('n_item_id'), [-1])], axis=0))
+        return [self._get_module('user_vec').censor_l2_norm_op(censor_id_list=unique_user_id),
+                self._get_module('p_item_vec').censor_l2_norm_op(censor_id_list=unique_item_id)]
+    
     def _build_user_extractions(self, train=True):
         
         self._add_module('user_vec', 
@@ -90,14 +98,16 @@ class NCML(Recommender):
                                     n_item=self._get_module('n_item_vec').get_outputs()[0], 
                                     p_item_bias=self._get_module('p_item_bias').get_outputs()[0],
                                     n_item_bias=self._get_module('n_item_bias').get_outputs()[0], 
-                                    scope='pairwise_log', reuse=False, train=True),
+                                    scope='pairwise_log', reuse=False, train=True,
+                                    max_item=self._max_item),
                             train=True)
         else:
             self._add_module('interaction',
                             NSEuDist(user=self._get_module('user_vec', train=train).get_outputs()[0],
                                         item=self._get_module('item_vec', train=train).get_outputs()[0], 
                                         item_bias=self._get_module('item_bias', train=train).get_outputs()[0],
-                                        scope='pairwise_log', reuse=True, train=False),
+                                        scope='pairwise_log', reuse=True, train=False,
+                                        max_item=self._max_item),
                             train=False)
 
     def _build_serving_graph(self):
