@@ -4,7 +4,7 @@ sys.path.append(os.getcwd())
 
 from openrec import ImplicitModelTrainer
 from openrec.utils import ImplicitDataset
-from openrec.recommenders import FeatureBasedBPR
+from openrec.recommenders import YoutubeRec
 from openrec.utils.evaluators import AUC
 from openrec.utils.samplers import PairwiseSampler
 from config import sess_config
