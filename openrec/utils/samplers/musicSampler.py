@@ -12,26 +12,38 @@ class _MusicSampler(Process):
         self._batch_size = batch_size
         self._q = q
         self._state = 0
-        self._genre_f = genre_f
         super(_GeneralSampler, self).__init__()
 
     def run(self):
         while True:
             
-            input_npy = np.zeros(self._batch_size, dtype=[('song_id', np.int32),
-                                                        ('artist', np.int32),
-                                                        ('genre_input', np.int32),
-                                                        ('language', np.int32),
-                                                        ('lyricist', np.int32),
-                                                        ('composer', np.int32),
-                                                        ('source_type', np.int32)])
+            input_npy = np.zeros(self._batch_size, dtype=[('song_id',np.object, 6000), 
+                                                ('source_type', np.object, 6000),
+                                                ('source_system_tab', np.object, 6000),
+                                                ('source_screen_name', np.object, 6000),
+                                                ('artist', np.object, 6000),
+                                                ('genre', np.object, 6000),
+                                                ('language', np.object, 6000),
+                                                ('lyricist', np.object, 6000),
+                                                ('composer', np.object, 6000),
+                                                ('imp_song_id',np.object), 
+                                                ('imp_artist', np.object),
+                                                ('imp_genre', np.object),
+                                                ('imp_language', np.object),
+                                                ('imp_lyricist', np.object),
+                                                ('imp_composer', np.object),
+                                                ('imp_source_type', np.object),
+                                                ('imp_labels',np.object)])
 
             if self._state + self._batch_size >= len(self._dataset.data):
                 self._state = 0
                 self._dataset.shuffle()
 
             for sample_itr, entry in enumerate(self._dataset.data[self._state:(self._state + self._batch_size)]):
-                input_npy[sample_itr] = (entry['song_id'], entry['artist'], entry['genre_input'], entry['language'], entry['lyricist'], entry['composer'], entry['source_type'])
+                input_npy[sample_itr] = (entry['song_id'],  entry['source_type'],  entry['source_system_tab'], entry['source_screen_name'],
+                                        entry['artist'], entry['genre'], entry['language'], entry['lyricist'], entry['composer'],
+                                        entry['imp_artist'], entry['imp_genre'], entry['imp_language'], entry['imp_lyricist'], entry['imp_composer'],
+                                        entry['imp_source_type'], entry['imp_labels'])
             self._state += self._batch_size
             self._q.put(input_npy, block=True)
 
@@ -50,5 +62,4 @@ class MusicSampler(Sampler):
         
         return _MusicSampler(dataset=self._dataset,
                                batch_size=self._batch_size,
-                               q=self._q,
-                               genre_f=self._genre_f)
+                               q=self._q)

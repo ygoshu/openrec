@@ -41,3 +41,22 @@ def load_tradesy():
     return raw_data
 
 
+
+def load_music():
+    raw_data = dict()
+    raw_data['max_user'] = 29163
+    raw_data['max_item'] = 2296834
+
+    print 'oh shit 1'
+    raw_data['train_data'] = np.load('dataset/music/train_structured_arr_batch.npy')
+    print 'oh shit 2'
+    raw_data['val_data'] = np.load('dataset/music/val_structured_arr_batch.npy')
+    print 'oh shit 3'
+    raw_data['test_data'] = np.load('dataset/music/test_structured_arr_batch.npy')
+    print 'oh shit 4' 
+    return raw_data
+
+
+
+
+

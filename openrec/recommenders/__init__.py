@@ -14,5 +14,6 @@ from openrec.recommenders.visual_gmf import VisualGMF
 from openrec.recommenders.user_pmf import UserPMF
 from openrec.recommenders.user_visual_pmf import UserVisualPMF
 from openrec.recommenders.itr_mlp import ItrMLP
-from youtube import Youtube 
+from openrec.recommenders.youtube import YoutubeRec 
+
 

@@ -49,7 +49,7 @@ class BPR(Recommender):
         test_batch_size=None, l2_reg=None, opt='SGD', lr=None, init_dict=None, sess_config=None):
 
         self._dim_embed = dim_embed
-
+        
         super(BPR, self).__init__(batch_size=batch_size, 
                                   test_batch_size=test_batch_size,
                                   max_user=max_user, 
